@@ -1,6 +1,8 @@
 package game2048;
 
 import java.util.Formatter;
+import java.util.HashSet;
+import java.util.Set;
 
 
 /** The state of a game of 2048.
@@ -93,8 +95,13 @@ public class Model {
      * */
     public static boolean emptySpaceExists(Board b) {
         // TODO: Fill in this function.
-
-
+        for (int i = 0; i < b.size(); i++) {
+            for (int j = 0; j < b.size(); j++) {
+                if (b.tile(i, j) == null) {
+                    return true;
+                }
+            }
+        }
         return false;
     }
 
@@ -105,10 +112,17 @@ public class Model {
      */
     public static boolean maxTileExists(Board b) {
         // TODO: Fill in this function.
-
-
+        for (int i = 0; i < b.size(); i++) {
+            for (int j = 0; j < b.size(); j++) {
+                if (b.tile(i,j) != null && b.tile(i, j).value() == MAX_PIECE) {
+                    return true;
+                }
+            }
+        }
         return false;
     }
+
+
 
     /**
      * Returns true if there are any valid moves on the board.
@@ -118,7 +132,29 @@ public class Model {
      */
     public static boolean atLeastOneMoveExists(Board b) {
         // TODO: Fill in this function.
-
+        if (emptySpaceExists(b) || maxTileExists(b)) {
+            return true;
+        }
+        for (int i = 0; i < b.size(); i++) {
+            for (int j = 0; j < b.size(); j++) {
+                // 左边元素
+                if (i - 1 >= 0 && b.tile(i, j).value() == b.tile(i - 1, j).value()) {
+                    //System.out.println(b.tile(i - 1,j));
+                    return true;
+                    // 右边元素
+                } else if (i + 1 < b.size() && b.tile(i, j).value() == b.tile(i + 1, j).value()) {
+                    return true;
+                    // 下方元素
+                } else if (j - 1 >= 0 && b.tile(i, j).value() == b.tile(i ,j - 1).value()) {
+                    //System.out.println(b.tile(i, j - 1));
+                    return true;
+                    // 上方元素
+                } else if (j + 1 < b.size() && b.tile(i, j).value() == b.tile(i, j + 1).value()) {
+                    //System.out.println(b.tile(i, j + 1));
+                    return true;
+                }
+            }
+        }
 
         return false;
     }
@@ -138,9 +174,53 @@ public class Model {
     public void tilt(Side side) {
         // TODO: Modify this.board (and if applicable, this.score) to account
         // for the tilt to the Side SIDE.
+        //System.out.println(side);
+        if (side == Side.SOUTH) {
+            board.setViewingPerspective(side);
+            process();
+            board.setViewingPerspective(Side.NORTH);
+        } else if (side == Side.EAST) {
+            board.setViewingPerspective(side);
+            process();
+            board.setViewingPerspective(Side.NORTH);
+        } else if (side == Side.WEST) {
+            board.setViewingPerspective(side);
+            process();
+            board.setViewingPerspective(Side.NORTH);
+        } else {
+            process();
+        }
 
 
         checkGameOver();
+    }
+
+
+    public void process() {
+        for (int c = 0; c < board.size(); c++ ) {
+            int k = 0;
+            for (int r = board.size() - 2; r >= 0; r--) {
+                boolean flag = true;
+                Tile t = board.tile(c, r);
+                if (t != null) {
+                    int i = r;
+                    int score_ = 0;
+                    for (int j = r + 1; j < board.size(); j++) {
+                        if (board.tile(c, j) == null) {
+                            i += 1;
+                        } else if (board.tile(c, r).value() == board.tile(c, j).value() && flag && k != j) {
+                            i += 1;
+                            score_ = board.tile(c, j).value() * 2;
+                            flag = false;
+                            k = j;
+                        }
+                    }
+                    board.move(c, i, t);
+                    score += score_;
+                }
+            }
+        }
+
     }
 
 
